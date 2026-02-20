@@ -1,0 +1,568 @@
+﻿<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>5 Perguntas</title>
+  <style>
+    :root { --glass: rgba(0,0,0,.45); --txt: #fff; }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; font-family: system-ui, Arial; background:#000; overflow:hidden; }
+
+    .bg {
+      position: fixed; inset: 0;
+      background: url("/static/bg.gif") center/cover no-repeat;
+      filter: brightness(.7) saturate(1.1);
+      transform: scale(1.05);
+      z-index: 0;
+    }
+    .shade {
+      position: fixed; inset:0;
+      background: radial-gradient(circle at 30% 20%, rgba(0,0,0,.25), rgba(0,0,0,.75));
+      z-index: 1;
+    }
+
+    .float-layer {
+      position: fixed; inset:0;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .floater {
+      position: absolute;
+      width: 90px; height: 90px;
+      object-fit: cover;
+      opacity: .95;
+      filter: drop-shadow(0 8px 18px rgba(0,0,0,.55));
+      will-change: transform, left, top;
+      user-select: none;
+      clip-path: path("M50 92 C24 74 6 52 6 30 C6 15 18 6 31 6 C40 6 47 10 50 17 C53 10 60 6 69 6 C82 6 94 15 94 30 C94 52 76 74 50 92 Z");
+    }
+
+    .wrap {
+      position: relative;
+      z-index: 3;
+      height: 100%;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+    }
+    .card {
+      width: min(720px, 92vw);
+      background: var(--glass);
+      color: var(--txt);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 18px;
+      padding: 18px 18px 16px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 12px 40px rgba(0,0,0,.4);
+    }
+    .step-title { margin: 0 0 10px; font-size: 20px; font-weight: 700; }
+    .question { margin: 0 0 14px; line-height: 1.35; opacity:.95; }
+
+    .row { display:flex; gap:10px; flex-wrap: wrap; align-items:center; }
+    input[type="text"]{
+      flex: 1; min-width: 220px;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.35);
+      color: #fff;
+      outline: none;
+    }
+    button {
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.12);
+      color: #fff;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    button:hover { background: rgba(255,255,255,.18); }
+
+    .btns { margin-top: 14px; position: relative; min-height: 64px; }
+    .btn-no { position: absolute; left: 170px; top: 0px; }
+
+    .hint { margin-top: 10px; font-size: 13px; opacity:.8; }
+    .done-gallery {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(70px, 1fr));
+      gap: 10px;
+    }
+    .done-gallery img{
+      width: 100%;
+      aspect-ratio: 1/1;
+      object-fit: cover;
+      border-radius: 0;
+      border: 1px solid rgba(255,255,255,.12);
+      filter: drop-shadow(0 10px 22px rgba(0,0,0,.35));
+      clip-path: path("M50 92 C24 74 6 52 6 30 C6 15 18 6 31 6 C40 6 47 10 50 17 C53 10 60 6 69 6 C82 6 94 15 94 30 C94 52 76 74 50 92 Z");
+    }
+    .done-gallery img.no-heart {
+      clip-path: none;
+      border-radius: 14px;
+    }
+    .done-gallery.single-image {
+      grid-template-columns: minmax(220px, 340px);
+      justify-content: center;
+    }
+    .hidden { display:none; }
+    .mini-counter {
+      margin-top: 10px;
+      font-size: 12px;
+      opacity: .9;
+      text-align: center;
+      letter-spacing: .2px;
+    }
+    .intro-note {
+      margin: 0 0 14px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.14);
+      font-size: 13px;
+      line-height: 1.45;
+      white-space: pre-line;
+    }
+    .mini-feedback {
+      margin-top: 4px;
+      font-size: 11px;
+      opacity: .9;
+      text-align: center;
+      min-height: 14px;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="bg"></div>
+  <div class="shade"></div>
+  <div class="float-layer" id="floatLayer"></div>
+
+  <div class="wrap">
+    <div class="card">
+      <h1 class="step-title" id="title">Início</h1>
+      <p class="question" id="question"></p>
+      <div class="intro-note" id="introNote">Você vai participar de um pequeno joguinho feito especialmente para você 💕
+Ele tem 4 perguntas simples e cada resposta certa vale 1 ponto.
+A cada resposta, você verá na hora se acertou ou errou.
+Sua pontuação vai aparecer na tela em tempo real.
+Basta ler com calma e escolher a opção que achar correta.
+Não precisa ter pressa, é só seguir até o final.
+Quanto mais pontos você fizer, mais perto chega da surpresa.
+Se alcançar a pontuação máxima, algo especial será revelado.
+É rápido, leve e feito com carinho.
+Agora é só começar e ver onde isso vai dar ✨</div>
+
+      <div id="quizStep">
+        <div class="row">
+          <input id="answerInput" type="text" placeholder="Digite aqui..." autocomplete="off" />
+          <button id="nextText">Avançar</button>
+        </div>
+        <div class="row">
+          <button id="optA"></button>
+          <button id="optB"></button>
+          <button id="optC"></button>
+        </div>
+        <div class="hint" id="stepHint"></div>
+      </div>
+
+      <div id="result" class="hidden">
+        <h2 class="step-title">Fim 🎉</h2>
+        <p class="question" id="resultText"></p>
+        <div class="done-gallery" id="gallery"></div>
+        <div class="row hidden" id="advanceWrap" style="margin-top:12px;">
+          <button id="advanceBtn">Abrir cadeado da pergunta misteriosa</button>
+        </div>
+        <div class="row hidden" id="retryWrap" style="margin-top:12px;">
+          <button id="retryBtn">Recomeçar</button>
+        </div>
+      </div>
+      <div id="finalStep" class="hidden">
+        <div class="question" id="finalText"></div>
+        <div class="btns" id="finalBtns">
+          <button id="yesBtn">Sim ✅</button>
+          <button class="btn-no" id="noBtn">Não ❌</button>
+        </div>
+        <div class="hint" id="finalHint">não clique em "Não" pois algo irá acontecer</div>
+      </div>
+      <div class="mini-counter" id="miniCounter">✅ <span id="okCount">0</span> ❌ <span id="errCount">0</span></div>
+      <div class="mini-feedback" id="miniFeedback"></div>
+    </div>
+  </div>
+
+  <script>
+    let userName = "";
+    let currentStep = 1;
+    const answers = {};
+    const TOTAL_QUESTIONS = 4;
+
+    const QUESTIONS = [
+      { type: "text", key: "name", prompt: "Informe seu nome para começar", placeholder: "Digite seu nome..." },
+      { type: "choice", key: "q1", prompt: "Data em que começamos a conversar", options: ["11/10", "20/10", "12/11"], correct: "11/10" },
+      { type: "choice", key: "q2", prompt: "Primeira vez que nos beijamos de verdade", options: ["06/02", "02/02", "08/02"], correct: "06/02" },
+      { type: "choice", key: "q3", prompt: "Meu desenho favorito", options: ["Carros", "Toy Story", "Rei Leão"], correct: "Carros" },
+      { type: "choice", key: "q4", prompt: "Meu maior sonho", options: ["Te fazer feliz", "Ser rico", "Ficar com uma velha rica"], correct: "Te fazer feliz" }
+    ];
+
+    const title = document.getElementById("title");
+    const question = document.getElementById("question");
+    const introNote = document.getElementById("introNote");
+
+    const quizStep = document.getElementById("quizStep");
+    const result = document.getElementById("result");
+    const finalStep = document.getElementById("finalStep");
+    const answerInput = document.getElementById("answerInput");
+    const nextText = document.getElementById("nextText");
+    const optA = document.getElementById("optA");
+    const optB = document.getElementById("optB");
+    const optC = document.getElementById("optC");
+    const stepHint = document.getElementById("stepHint");
+    const okCount = document.getElementById("okCount");
+    const errCount = document.getElementById("errCount");
+    const miniFeedback = document.getElementById("miniFeedback");
+    const advanceWrap = document.getElementById("advanceWrap");
+    const advanceBtn = document.getElementById("advanceBtn");
+    const retryWrap = document.getElementById("retryWrap");
+    const retryBtn = document.getElementById("retryBtn");
+    const finalText = document.getElementById("finalText");
+    const yesBtn = document.getElementById("yesBtn");
+    const noBtn = document.getElementById("noBtn");
+    const btnBox = document.getElementById("finalBtns");
+    let scoreOk = 0;
+    let scoreErr = 0;
+
+    async function saveInfo(payload){
+      try {
+        await fetch("/save", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+      } catch (e) {}
+    }
+
+    function getPrompt(cfg){
+      return typeof cfg.prompt === "function" ? cfg.prompt(userName || "pessoa misteriosa") : cfg.prompt;
+    }
+
+    function shuffleArray(list){
+      const arr = [...list];
+      for(let i = arr.length - 1; i > 0; i--){
+        const j = Math.floor(Math.random() * (i + 1));
+        const tmp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = tmp;
+      }
+      return arr;
+    }
+
+    function renderStep(){
+      const cfg = QUESTIONS[currentStep - 1];
+      const questionNumber = Math.max(0, currentStep - 1);
+      title.textContent = cfg.type === "text" ? "Início" : `Pergunta ${questionNumber}/${TOTAL_QUESTIONS}`;
+      question.textContent = getPrompt(cfg);
+
+      introNote.classList.toggle("hidden", cfg.type !== "text");
+      quizStep.classList.remove("hidden");
+      result.classList.add("hidden");
+      finalStep.classList.add("hidden");
+
+      if(cfg.type === "text"){
+        answerInput.classList.remove("hidden");
+        nextText.classList.remove("hidden");
+        optA.classList.add("hidden");
+        optB.classList.add("hidden");
+        optC.classList.add("hidden");
+        stepHint.textContent = "";
+        answerInput.placeholder = cfg.placeholder || "Digite aqui...";
+        answerInput.value = answers[cfg.key] || "";
+        answerInput.focus();
+        miniFeedback.textContent = "";
+      } else {
+        answerInput.classList.add("hidden");
+        nextText.classList.add("hidden");
+        optA.classList.remove("hidden");
+        optB.classList.remove("hidden");
+        optC.classList.remove("hidden");
+        if(!cfg.shuffledOptions){
+          cfg.shuffledOptions = shuffleArray(cfg.options);
+        }
+        optA.textContent = cfg.shuffledOptions[0];
+        optB.textContent = cfg.shuffledOptions[1];
+        optC.textContent = cfg.shuffledOptions[2];
+        optA.style.background = answers[cfg.key] === cfg.shuffledOptions[0] ? "rgba(255,255,255,.28)" : "rgba(255,255,255,.12)";
+        optB.style.background = answers[cfg.key] === cfg.shuffledOptions[1] ? "rgba(255,255,255,.28)" : "rgba(255,255,255,.12)";
+        optC.style.background = answers[cfg.key] === cfg.shuffledOptions[2] ? "rgba(255,255,255,.28)" : "rgba(255,255,255,.12)";
+        stepHint.textContent = "";
+      }
+    }
+
+    function advanceStep(){
+      if(currentStep < QUESTIONS.length){
+        currentStep += 1;
+        renderStep();
+      } else {
+        showResult();
+      }
+    }
+
+    function persistProgress(accepted){
+      saveInfo({
+        name: userName,
+        step2_choice: answers.q2 || "",
+        accepted,
+        answers,
+        score_ok: scoreOk,
+        score_err: scoreErr
+      });
+    }
+
+    function updateCounter(){
+      okCount.textContent = String(scoreOk);
+      errCount.textContent = String(scoreErr);
+    }
+
+    nextText.addEventListener("click", () => {
+      const cfg = QUESTIONS[currentStep - 1];
+      const value = answerInput.value.trim();
+      if(cfg.key === "name"){
+        userName = value || "pessoa misteriosa";
+        answers[cfg.key] = userName;
+      } else {
+        answers[cfg.key] = value;
+      }
+      persistProgress(false);
+      advanceStep();
+    });
+
+    answerInput.addEventListener("keydown", (e) => {
+      if(e.key === "Enter"){
+        e.preventDefault();
+        nextText.click();
+      }
+    });
+
+    function selectChoice(choice){
+      const cfg = QUESTIONS[currentStep - 1];
+      answers[cfg.key] = choice;
+      if(cfg.correct && choice === cfg.correct){
+        scoreOk += 1;
+        miniFeedback.textContent = "✅ Acertou";
+      } else {
+        scoreErr += 1;
+        miniFeedback.textContent = "❌ Errou";
+      }
+      updateCounter();
+      persistProgress(false);
+      advanceStep();
+    }
+
+    optA.addEventListener("click", () => selectChoice(optA.textContent));
+    optB.addEventListener("click", () => selectChoice(optB.textContent));
+    optC.addEventListener("click", () => selectChoice(optC.textContent));
+
+    function showResult(){
+      answers.perfect_score = scoreOk === TOTAL_QUESTIONS;
+      answers.accepted = false;
+      persistProgress(false);
+      quizStep.classList.add("hidden");
+      introNote.classList.add("hidden");
+      finalStep.classList.add("hidden");
+      result.classList.remove("hidden");
+      advanceWrap.classList.toggle("hidden", !answers.perfect_score);
+      retryWrap.classList.toggle("hidden", answers.perfect_score);
+      document.getElementById("resultText").textContent =
+        scoreOk === TOTAL_QUESTIONS
+          ? `Perfeito, ${userName}! Você fez ${scoreOk}/${TOTAL_QUESTIONS}. Clique em Avançar para a pergunta final.`
+          : `${userName}, você fez ${scoreOk}/${TOTAL_QUESTIONS}. Quase lá, tente de novo para ver a surpresa.`;
+      title.textContent = "Concluído";
+      question.textContent = "";
+
+      const gallery = document.getElementById("gallery");
+      gallery.innerHTML = "";
+      gallery.classList.add("single-image");
+      const preview = document.createElement("img");
+      preview.src = "/static/img3.jpg";
+      preview.alt = "img3";
+      preview.className = "no-heart";
+      gallery.appendChild(preview);
+    }
+
+    function openFinalQuestion(){
+      result.classList.add("hidden");
+      advanceWrap.classList.add("hidden");
+      retryWrap.classList.add("hidden");
+      finalStep.classList.remove("hidden");
+      title.textContent = "Pergunta Final";
+      question.textContent = "";
+      finalText.textContent = `${userName}, quer namorar comigo? 💖`;
+    }
+
+    function moveNoButton(){
+      const box = btnBox.getBoundingClientRect();
+      const b = noBtn.getBoundingClientRect();
+      const pad = 8;
+      const maxX = Math.max(pad, box.width - b.width - pad);
+      const maxY = Math.max(pad, box.height - b.height - pad);
+      const x = Math.random() * maxX;
+      const y = Math.random() * maxY;
+      noBtn.style.left = `${x}px`;
+      noBtn.style.top = `${y}px`;
+    }
+
+    advanceBtn.addEventListener("click", openFinalQuestion);
+    noBtn.addEventListener("mouseenter", moveNoButton);
+    noBtn.addEventListener("touchstart", (e) => { e.preventDefault(); moveNoButton(); }, { passive: false });
+    noBtn.addEventListener("click", (e) => { e.preventDefault(); moveNoButton(); });
+
+    yesBtn.addEventListener("click", () => {
+      answers.accepted = true;
+      persistProgress(true);
+      finalStep.classList.add("hidden");
+      result.classList.remove("hidden");
+      document.getElementById("resultText").innerHTML =
+        `Parabéns!!! 🥳🥳🥳<br><br>Acabou de garantir que vou encher o teu saco para o resto da tua vida, em breve vai receber uma surpresa misteriosa.<br><br>Dica: 💍`;
+      title.textContent = "Surpresa";
+      question.textContent = "";
+      advanceWrap.classList.add("hidden");
+      retryWrap.classList.add("hidden");
+
+      const gallery = document.getElementById("gallery");
+      gallery.innerHTML = "";
+      gallery.classList.add("single-image");
+      const im = document.createElement("img");
+      im.src = "/static/img5.jpg";
+      im.alt = "img5";
+      im.className = "no-heart";
+      gallery.appendChild(im);
+    });
+
+    retryBtn.addEventListener("click", () => {
+      currentStep = 1;
+      scoreOk = 0;
+      scoreErr = 0;
+      Object.keys(answers).forEach((k) => delete answers[k]);
+      QUESTIONS.forEach((q) => {
+        if(q.type === "choice"){
+          delete q.shuffledOptions;
+        }
+      });
+      userName = "";
+      updateCounter();
+      miniFeedback.textContent = "";
+      result.classList.add("hidden");
+      finalStep.classList.add("hidden");
+      advanceWrap.classList.add("hidden");
+      retryWrap.classList.add("hidden");
+      renderStep();
+    });
+
+    const floatLayer = document.getElementById("floatLayer");
+    const floatingSources = ["/static/img1.jpeg","/static/img2.jpeg"];
+    const floaters = [];
+    const FLOATER_COUNT = 10;
+
+    function rand(min, max){ return Math.random() * (max - min) + min; }
+
+    // limites: nao deixa tampar o fundo
+    const MIN_SIZE = 94;
+    const MAX_SIZE = 148;
+
+    function createFloaters(){
+      for(let i=0;i<FLOATER_COUNT;i++){
+        const img = document.createElement("img");
+        img.className = "floater";
+        img.src = floatingSources[i % floatingSources.length];
+
+        const base = rand(104, 128);
+        const ampPx = rand(6, 11);
+        const phase = rand(0, Math.PI * 2);
+        const pulseSpeed = rand(0.00045, 0.00095);
+
+        img.dataset.base = String(base);
+        img.dataset.ampPx = String(ampPx);
+        img.dataset.phase = String(phase);
+        img.dataset.pulseSpeed = String(pulseSpeed);
+
+        img.style.width = base + "px";
+        img.style.height = base + "px";
+
+        img.style.left = rand(0, window.innerWidth - base) + "px";
+        img.style.top  = rand(0, window.innerHeight - base) + "px";
+
+        // velocidade mais estavel: mesma intensidade, direcao aleatoria
+        const angle = rand(0, Math.PI * 2);
+        const speed = rand(0.02, 0.024);
+        img.dataset.vx = (Math.cos(angle) * speed).toFixed(5);
+        img.dataset.vy = (Math.sin(angle) * speed).toFixed(5);
+
+        // rotacao lenta
+        img.dataset.rot = rand(-0.02, 0.02);
+        img.dataset.r = rand(0, 360);
+
+        floatLayer.appendChild(img);
+        floaters.push(img);
+      }
+    }
+
+    let tick = 0;
+    function animate(){
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+
+      tick += 1;
+
+      for(const el of floaters){
+        let x = parseFloat(el.style.left);
+        let y = parseFloat(el.style.top);
+        let vx = parseFloat(el.dataset.vx);
+        let vy = parseFloat(el.dataset.vy);
+
+        // movimento bem lento
+        x += vx * 6;
+        y += vy * 6;
+
+        const base = parseFloat(el.dataset.base);
+        const ampPx = parseFloat(el.dataset.ampPx);
+        const phase = parseFloat(el.dataset.phase);
+        const pulseSpeed = parseFloat(el.dataset.pulseSpeed);
+
+        // tamanho alvo (px) e clamp
+        let size = base + Math.sin(tick * pulseSpeed * 60 + phase) * ampPx;
+        size = Math.max(MIN_SIZE, Math.min(MAX_SIZE, size));
+
+        // mantem o elemento com base fixa e usa scale pra "respirar"
+        const scale = size / base;
+
+        // bounce considerando o tamanho atual
+        if (x < 0) { x = 0; vx *= -1; }
+        if (y < 0) { y = 0; vy *= -1; }
+        if (x > w - size) { x = w - size; vx *= -1; }
+        if (y > h - size) { y = h - size; vy *= -1; }
+
+        el.style.left = x + "px";
+        el.style.top = y + "px";
+
+        let r = parseFloat(el.dataset.r);
+        r += parseFloat(el.dataset.rot) * 3;
+        el.dataset.r = r;
+
+        // rotacao + respiracao (bem "animacao antiga")
+        el.style.transform = `rotate(${r}deg) scale(${scale.toFixed(4)})`;
+
+        el.dataset.vx = vx;
+        el.dataset.vy = vy;
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    createFloaters();
+    animate();
+    updateCounter();
+    renderStep();
+  </script>
+</body>
+</html>
