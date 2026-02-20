@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="pt-br">
 <head>
   <meta charset="utf-8" />
@@ -133,6 +133,38 @@
       min-height: 14px;
     }
 
+    /* ✅ imagem “montando” conforme acertos */
+    .progress-wrap{
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      width: min(260px, 80vw);
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .progress-piece{
+      width: 100%;
+      aspect-ratio: 1/1;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.14);
+      background-image: url("/static/progresso.jpg");
+      background-size: 200% 200%;
+      background-repeat: no-repeat;
+      filter: blur(8px) brightness(.75);
+      opacity: .25;
+      transform: scale(.98);
+      transition: filter .55s ease, opacity .55s ease, transform .55s ease;
+    }
+    .progress-piece.on{
+      filter: blur(0) brightness(1);
+      opacity: 1;
+      transform: scale(1);
+    }
+    .progress-piece.p1{ background-position:   0%   0%; }
+    .progress-piece.p2{ background-position: 100%   0%; }
+    .progress-piece.p3{ background-position:   0% 100%; }
+    .progress-piece.p4{ background-position: 100% 100%; }
   </style>
 </head>
 <body>
@@ -144,6 +176,7 @@
     <div class="card">
       <h1 class="step-title" id="title">Início</h1>
       <p class="question" id="question"></p>
+
       <div class="intro-note" id="introNote">Você vai participar de um pequeno joguinho feito especialmente para você 💕
 Ele tem 4 perguntas simples e cada resposta certa vale 1 ponto.
 A cada resposta, você verá na hora se acertou ou errou.
@@ -179,6 +212,7 @@ Agora é só começar e ver onde isso vai dar ✨</div>
           <button id="retryBtn">Recomeçar</button>
         </div>
       </div>
+
       <div id="finalStep" class="hidden">
         <div class="question" id="finalText"></div>
         <div class="btns" id="finalBtns">
@@ -187,6 +221,15 @@ Agora é só começar e ver onde isso vai dar ✨</div>
         </div>
         <div class="hint" id="finalHint">não clique em "Não" pois algo irá acontecer</div>
       </div>
+
+      <!-- ✅ imagem que vai “montando” conforme acertos -->
+      <div class="progress-wrap" id="progressWrap">
+        <div class="progress-piece p1" title="1/4"></div>
+        <div class="progress-piece p2" title="2/4"></div>
+        <div class="progress-piece p3" title="3/4"></div>
+        <div class="progress-piece p4" title="4/4"></div>
+      </div>
+
       <div class="mini-counter" id="miniCounter">✅ <span id="okCount">0</span> ❌ <span id="errCount">0</span></div>
       <div class="mini-feedback" id="miniFeedback"></div>
     </div>
@@ -230,8 +273,15 @@ Agora é só começar e ver onde isso vai dar ✨</div>
     const yesBtn = document.getElementById("yesBtn");
     const noBtn = document.getElementById("noBtn");
     const btnBox = document.getElementById("finalBtns");
+
     let scoreOk = 0;
     let scoreErr = 0;
+
+    // ✅ progresso da imagem (quebra-cabeça 2x2)
+    const progressPieces = Array.from(document.querySelectorAll(".progress-piece"));
+    function updateProgressImage(){
+      progressPieces.forEach((el, idx) => el.classList.toggle("on", idx < scoreOk));
+    }
 
     async function saveInfo(payload){
       try {
@@ -355,6 +405,7 @@ Agora é só começar e ver onde isso vai dar ✨</div>
         miniFeedback.textContent = "❌ Errou";
       }
       updateCounter();
+      updateProgressImage(); // ✅ monta a imagem conforme acertos
       persistProgress(false);
       advanceStep();
     }
@@ -451,6 +502,7 @@ Agora é só começar e ver onde isso vai dar ✨</div>
       });
       userName = "";
       updateCounter();
+      updateProgressImage(); // ✅ zera a imagem
       miniFeedback.textContent = "";
       result.classList.add("hidden");
       finalStep.classList.add("hidden");
@@ -562,6 +614,7 @@ Agora é só começar e ver onde isso vai dar ✨</div>
     createFloaters();
     animate();
     updateCounter();
+    updateProgressImage(); // ✅ inicia com 0 peças liberadas
     renderStep();
   </script>
 </body>
